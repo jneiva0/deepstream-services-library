@@ -79,6 +79,11 @@ namespace DSL
     #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
         new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
+
+    #define DSL_RTSP_CLIENT_SINK_PTR std::shared_ptr<RtspClientSinkBintr>
+    #define DSL_RTSP_CLIENT_SINK_NEW(name, uri, codec, bitrate, interval) \
+        std::shared_ptr<RtspClientSinkBintr>( \
+        new RtspClientSinkBintr(name, uri, codec, bitrate, interval))
         
     #define DSL_MESSAGE_SINK_PTR std::shared_ptr<MessageSinkBintr>
     #define DSL_MESSAGE_SINK_NEW(name, \
@@ -1062,6 +1067,33 @@ namespace DSL
         GstRTSPMediaFactory* m_pFactory;
  
         DSL_ELEMENT_PTR m_pPayloader;
+    };
+
+    //-------------------------------------------------------------------------
+
+    class RtspClientSinkBintr : public EncodeSinkBintr
+    {
+    public: 
+    
+        RtspClientSinkBintr(const char* name, const char* uri, 
+            uint codec, uint bitrate, uint interval);
+
+        ~RtspClientSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+    private:
+
     };
 
     //-------------------------------------------------------------------------

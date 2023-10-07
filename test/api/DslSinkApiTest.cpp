@@ -1847,7 +1847,7 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 R
 
         WHEN( "A new RTSP Sink is created" ) 
         {
-            REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
+            REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
                 udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
@@ -1878,7 +1878,7 @@ SCENARIO( "The Components container is updated correctly on DSL_CODEC_H264 RTSP 
         uint interval(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
+        REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
             udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RTSP Sink is deleted" ) 
@@ -1909,7 +1909,7 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H265 R
 
         WHEN( "A new RTSP Sink is created" ) 
         {
-            REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
+            REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
                 udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
@@ -1940,7 +1940,7 @@ SCENARIO( "The Components container is updated correctly on DSL_CODEC_H265 RTSP 
         uint interval(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
+        REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
             udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RTSP Sink is deleted" ) 
@@ -1966,7 +1966,7 @@ SCENARIO( "An RTSP Sink's Encoder settings can be updated", "[sink-api]" )
         uint initBitrate(4000000);
         uint initInterval(0);
 
-        REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
+        REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
             udpPort, rtspPort, codec, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
             
         uint currCodec(99);
@@ -2017,7 +2017,7 @@ SCENARIO( "A RTSP Sink can update it's common properties correctly",
         uint initInterval(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_rtsp_new(sink_name.c_str(), host.c_str(),
+        REQUIRE( dsl_sink_rtsp_server_new(sink_name.c_str(), host.c_str(),
             udpPort, rtspPort, codec, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
 
         WHEN( "The RTSP Sink's sync property is updated from its default" ) 
@@ -2122,6 +2122,47 @@ SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[si
         }
     }
 }
+
+SCENARIO( "The Components container is updated correctly on new RTSP-Client Sink", "[rjh]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring rtspClientSinkName(L"file-sink");
+        std::wstring uri(L"rtsp://server_endpoint/stream");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new File Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_rtsp_client_new(rtspClientSinkName.c_str(), 
+                uri.c_str(), codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                uint retCodec(0), retBitrate(0), retInterval(0);
+                REQUIRE( dsl_sink_encode_settings_get(rtspClientSinkName.c_str(), 
+                    &retCodec, &retBitrate, &retInterval) == DSL_RESULT_SUCCESS );
+                REQUIRE( retCodec == codec );
+                REQUIRE( retBitrate == bitrate );
+                REQUIRE( retInterval == interval );
+                
+                uint retHeight(99), retWidth(99);
+                REQUIRE( dsl_sink_encode_dimensions_get(rtspClientSinkName.c_str(), 
+                    &retWidth, &retHeight) == DSL_RESULT_SUCCESS );
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
 
 SCENARIO( "The Components container is updated correctly on new and delete Multi-Image Sink", "[sink-api]" )
 {
@@ -2419,8 +2460,8 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_encode_dimensions_set(NULL, 
                     0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_rtsp_new(NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_rtsp_new(sink_name.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_server_new(NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_server_new(sink_name.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_rtsp_server_settings_get(NULL, &udpPort, &rtspPort) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_image_multi_new(NULL,

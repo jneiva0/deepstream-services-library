@@ -246,6 +246,152 @@ namespace DSL
 
     // ********************************************************************
 
+    StyleBBoxOdeAction::StyleBBoxOdeAction(const char* name, 
+        uint style)
+        : OdeAction(name)
+        , m_style(style)
+    {
+        LOG_FUNC();
+    }
+
+    StyleBBoxOdeAction::~StyleBBoxOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void StyleBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            // save/use the border width for the width of the stylized bbox
+            uint borderWidth = pObjectMeta->rect_params.border_width;
+            
+            // set the actual bbox border to zero so it wont be displayed
+            pObjectMeta->rect_params.border_width = 0;
+
+            // Create a new RGBA display color type derived from the border_color.
+            // The color will be used for creating new display types; lines, circles.
+            DSL_RGBA_COLOR_PTR pBorderColor = 
+                std::shared_ptr<RgbaColor>(new RgbaColor("", 
+                    pObjectMeta->rect_params.border_color));
+            
+            // bbox coordinates are of type float (to support scaling).
+            // need to round to nearest integer.
+            uint left = round(pObjectMeta->rect_params.left);
+            uint top = round(pObjectMeta->rect_params.top);
+            uint width = round(pObjectMeta->rect_params.width);
+            uint height = round(pObjectMeta->rect_params.height);
+
+            uint longSide = std::max(width, height);
+            uint shortSide = std::min(width, height);
+
+            uint xc = round(pObjectMeta->rect_params.left +
+                pObjectMeta->rect_params.width/2.0);
+            uint yc = round(pObjectMeta->rect_params.top +
+                pObjectMeta->rect_params.height/2.0);
+            
+            if (m_style == DSL_BBOX_STYLE_BOX_CORNERS)
+            {
+                // Determine the length of the corner lines. 
+                // The desired length will be 15% of the longest side.
+                // The maximum size will be 40% of the shortest side.
+                uint maxLength = round(0.4 * (float)shortSide);
+                uint desiredLength = round(0.15 * (float)longSide);
+                uint actualLength = std::min(desiredLength, maxLength);
+
+                // Define the coordinates to create 4 multi-line display types,
+                // one for each corner (north-west, north-east, south-west, and
+                // south-east) using the bbox params and the line-length.
+                dsl_coordinate nw_coordinates[3] = {
+                    {left, top + actualLength}, 
+                    {left, top},
+                    {left + actualLength, top}};                    
+                dsl_coordinate ne_coordinates[3] = {
+                    {left + width, top + actualLength},
+                    {left + width, top},
+                    {left + width - actualLength, top}};                    
+                dsl_coordinate sw_coordinates[3] = {
+                    {left, top + height - actualLength},
+                    {left, top + height},
+                    {left + actualLength, top + height}};
+                dsl_coordinate se_coordinates[3] = {
+                    {left + width, top + height - actualLength},
+                    {left + width, top + height},
+                    {left + width - actualLength, top + height}};
+
+                // create the mutli-line display types
+                DSL_RGBA_MULTI_LINE_PTR nw_corner = 
+                    DSL_RGBA_MULTI_LINE_NEW("", 
+                        nw_coordinates, 3, borderWidth, pBorderColor);
+                DSL_RGBA_MULTI_LINE_PTR ne_corner = 
+                    DSL_RGBA_MULTI_LINE_NEW("", 
+                        ne_coordinates, 3, borderWidth, pBorderColor);
+                DSL_RGBA_MULTI_LINE_PTR sw_corner = 
+                    DSL_RGBA_MULTI_LINE_NEW("", 
+                        sw_coordinates, 3, borderWidth, pBorderColor);
+                DSL_RGBA_MULTI_LINE_PTR se_corner = 
+                    DSL_RGBA_MULTI_LINE_NEW("", 
+                        se_coordinates, 3, borderWidth, pBorderColor);
+
+                // call on each display type to add there metadata to the
+                // Frame's display-metadata.
+                nw_corner->AddMeta(displayMetaData, pFrameMeta);
+                ne_corner->AddMeta(displayMetaData, pFrameMeta);
+                sw_corner->AddMeta(displayMetaData, pFrameMeta);
+                se_corner->AddMeta(displayMetaData, pFrameMeta);
+            }
+            else if (m_style == DSL_BBOX_STYLE_BOX_SIDES)
+            {
+            }
+            else if (m_style == DSL_BBOX_STYLE_CIRCLE)
+            {
+                boolean hasBgColor = pObjectMeta->rect_params.has_bg_color;
+                pObjectMeta->rect_params.has_bg_color = false;
+                
+                DSL_RGBA_COLOR_PTR pBgColor = 
+                    std::shared_ptr<RgbaColor>(new RgbaColor("", 
+                        pObjectMeta->rect_params.bg_color));
+
+                // Create a circle display type using the short-side
+                // as the radius 
+                DSL_RGBA_CIRCLE_PTR pCircle = 
+                    DSL_RGBA_CIRCLE_NEW("", xc, yc, shortSide/2, pBorderColor, 
+                        hasBgColor, pBgColor);
+                
+                pCircle->AddMeta(displayMetaData, pFrameMeta);
+            }
+            else if (m_style == DSL_BBOX_STYLE_CROSS_HAIR)
+            {
+                // Note: we don't update the actual bbox
+                
+                // Create a circle display type using a percentage of short-side
+                uint radius = shortSide*0.15; 
+                uint lineLenth = shortSide*0.40;
+                
+                DSL_RGBA_LINE_PTR pVerticleLine =
+                    DSL_RGBA_LINE_NEW("",  xc, yc-(lineLenth/2), 
+                        xc, yc+(lineLenth/2), 2, pBorderColor);
+                DSL_RGBA_LINE_PTR pHorizontalLine =
+                    DSL_RGBA_LINE_NEW("",  xc-(lineLenth/2),
+                        yc, xc+(lineLenth/2), yc, 2, pBorderColor);
+                
+                DSL_RGBA_CIRCLE_PTR pCircle = 
+                    DSL_RGBA_CIRCLE_NEW("", xc, yc, radius, pBorderColor, 
+                        false, pBorderColor);
+                
+                pVerticleLine->AddMeta(displayMetaData, pFrameMeta);
+                pHorizontalLine->AddMeta(displayMetaData, pFrameMeta);
+                pCircle->AddMeta(displayMetaData, pFrameMeta);
+            }
+        }
+    }
+    
+    // ********************************************************************
+
     CustomOdeAction::CustomOdeAction(const char* name, 
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
         : OdeAction(name)
@@ -976,7 +1122,7 @@ namespace DSL
                     text = std::regex_replace(text, std::regex("\%9"), 
                         std::to_string(pFrameMeta->misc_frame_info[
                             DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]));
-                    text = std::regex_replace(text, std::regex("\%10"), 
+                    text = std::regex_replace(text, std::regex("\%50"), 
                         std::to_string(pFrameMeta->misc_frame_info[
                             DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]));
                 }

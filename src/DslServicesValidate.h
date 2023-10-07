@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021, Prominence AI, Inc.
+Copyright (c) 2021-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -224,7 +224,8 @@ THE SOFTWARE.
 { \
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and \
-        !components[name]->IsType(typeid(RtspSinkBintr))) \
+        !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
@@ -236,6 +237,7 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
@@ -307,6 +309,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
@@ -330,6 +333,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr))) \
@@ -349,6 +353,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
@@ -454,4 +459,3 @@ THE SOFTWARE.
 }while(0); 
 
 #endif // _DSL_SERVICES_VALIDATE_H
-

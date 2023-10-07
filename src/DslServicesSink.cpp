@@ -1625,6 +1625,42 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkRtspClientNew(const char* name, const char* uri, 
+            uint codec, uint bitrate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            if (codec > DSL_CODEC_H265)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for RTSP-CLient Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+            m_components[name] = DSL_RTSP_CLIENT_SINK_NEW(name, 
+                uri, codec, bitrate, interval);
+            
+            LOG_INFO("New RTSP-Client Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RTSP-CLient Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SinkInterpipeNew(const char* name,
         boolean forwardEos, boolean forwardEvents)
     {

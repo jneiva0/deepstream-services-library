@@ -187,6 +187,8 @@ namespace DSL {
             
         DslReturnType OdeActionBBoxScaleNew(const char* name, uint scale);
 
+        DslReturnType OdeActionBBoxStyleNew(const char* name, uint style);
+
         DslReturnType OdeActionLabelCustomizeNew(const char* name, 
             const uint* contentTypes, uint size);
 
@@ -1349,6 +1351,9 @@ namespace DSL {
             
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
             uint* updPort, uint* rtspPort);
+            
+        DslReturnType SinkRtspClientNew(const char* name, const char* uri, 
+            uint codec, uint bit_rate, uint interval);
             
         DslReturnType SinkInterpipeNew(const char* name,
             boolean forward_eos, boolean forward_events);

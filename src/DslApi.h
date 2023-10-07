@@ -648,9 +648,18 @@ THE SOFTWARE.
 #define DSL_TLS_CERTIFICATE_VALIDATE_ALL                            0x0000007f
 
 /**
- @brief default UDP buffer size for RTSP Media Factory launc settings
-  */
+ * @brief default UDP buffer size for RTSP Media Factory launch settings
+ */
 #define DSL_DEFAULT_UDP_BUFER_SIZE                                  (512*1024)
+
+/**
+ * @brief RTSP Profiles constants
+ */
+#define DSL_RTSP_PROFILE_UNKNOWN                                    0x00000000
+#define DSL_RTSP_PROFILE_AVP                                        0x00000001
+#define DSL_RTSP_PROFILE_SAVP                                       0x00000002
+#define DSL_RTSP_PROFILE_AVPF                                       0x00000004
+#define DSL_RTSP_PROFILE_SAVPF                                      0x00000008
 
 /**
  * @brief Predefined Color Constants - rows 1 and 2.
@@ -787,6 +796,12 @@ THE SOFTWARE.
 #define DSL_ARROW_START_HEAD                                        0
 #define DSL_ARROW_END_HEAD                                          1
 #define DSL_ARROW_BOTH_HEAD                                         2
+
+
+#define DSL_BBOX_STYLE_BOX_CORNERS                                  0
+#define DSL_BBOX_STYLE_BOX_SIDES                                    1
+#define DSL_BBOX_STYLE_CIRCLE                                       2
+#define DSL_BBOX_STYLE_CROSS_HAIR                                   3
 
 /**
  * @brief Image Source Type constants
@@ -2266,6 +2281,16 @@ DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_wi
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale);
+
+/**
+ * @brief Creates a uniquely named "Style Bounding Box" ODE Action that styles
+ * and Objects bounding box to show only corners or side sections of the box,
+ * or a circle instead.
+ * @param[in] name unique name for the "Scale Bounding Box" ODE Action. 
+ * @param[in] style one of the DSL_BBOX_STYLE constant values.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_bbox_style_new(const wchar_t* name, uint style);
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables
@@ -5087,24 +5112,24 @@ DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name);
 
 /**
  * @brief Gets the current latency setting for the named RTSP Source.
- * @param name[in] name of the RTSP Source to query.
- * @param latency[out] current latency setting = amount of data to buffer in ms.
+ * @param[in] name name of the RTSP Source to query.
+ * @param[out] latency current latency setting = amount of data to buffer in ms.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_latency_get(const wchar_t* name, uint* latency);
 
 /**
  * @brief Sets the latency setting for the named RTSP Source to use.
- * @param name[in] name of the RTSP Source to update.
- * @param latency[in] new latency setting = amount of data to buffer in ms.
+ * @param[in] name name of the RTSP Source to update.
+ * @param[in] latency new latency setting = amount of data to buffer in ms.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_latency_set(const wchar_t* name, uint latency);
 
 /**
  * @brief Gets the current drop-on-latency enabled setting for the named RTSP Source.
- * @param name[in] name of the RTSP Source to query.
- * @param enabled[out] If true, tells the jitterbuffer to never exceed the given 
+ * @param[in] name name of the RTSP Source to query.
+ * @param[in] enabled If true, tells the jitterbuffer to never exceed the given 
  * latency in size.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -5113,8 +5138,8 @@ DslReturnType dsl_source_rtsp_drop_on_latency_enabled_get(const wchar_t* name,
 
 /**
  * @brief Sets the drop-on-latency enabled setting for the named RTSP Source.
- * @param name[in] name of the RTSP Source to update.
- * @param enabled[in] Set to true to tell the jitterbuffer to never exceed the given 
+ * @param[in] name name of the RTSP Source to update.
+ * @param[in] enabled Set to true to tell the jitterbuffer to never exceed the given 
  * latency in size.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -6953,8 +6978,8 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
     uint width, uint height);
 
 /**
- * @brief creates a new, uniquely named RTSP Sink component
- * @param[in] name unique coomponent name for the new RTSP Sink
+ * @brief creates a new, uniquely named RTSP-Server Sink component
+ * @param[in] name unique component name for the new RTSP Sink
  * @param[in] host address for the RTSP Server
  * @param[in] port UDP port number for the RTSP Server
  * @param[in] port RTSP port number for the RTSP Server
@@ -6964,7 +6989,7 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
  * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtmpPort, uint codec, uint bitrate, uint interval);
 
 /**
@@ -6976,6 +7001,85 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
     uint* udpPort, uint* rtspPort);
 
+/**
+ * @brief creates a new, uniquely named RTSP-Client Sink component.
+ * @param[in] name unique component name for the new RTSP-Client Sink.
+ * @param[in] uri RTSP uri to read.
+ * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265.
+ * @param[in] bitrate in bits per second - H264 and H265 only.
+ * Set to 0 to use the Encoder default bitrate (4Mbps).
+ * @param[in] interval iframe interval to encode at.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
+     uint codec, uint bitrate, uint interval);
+
+/**
+ * @brief Sets the user credentials for the named RTSP-Client Sink to use.
+ * Note: there is no corresponding "Get" service for user credentials, 
+ * meaning, there is no way of reading the current credentials once set.
+ * @param[in] name name of the RTSP-Client to update.
+ * @param[in] user_id URI user id for authentication.
+ * @param[in] user_password URI user password for authentication.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_credentials_set(const wchar_t* name, 
+    wchar_t* user_id, wchar_t* user_password);
+
+/**
+ * @brief Gets the current latency setting for the named RTSP-Client Sink.
+ * @param[in] name name of the RTSP-Client Sink to query.
+ * @param[in] latency current latency setting = amount of data to buffer in ms.
+ * @return[in] DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_latency_get(const wchar_t* name, uint* latency);
+
+/**
+ * @brief Sets the latency setting for the named RTSP-Client Sink to use.
+ * @param[in] name name of the RTSP-Client to update.
+ * @param[in] latency new latency setting = amount of data to buffer in ms.
+ * @return[in] DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_latency_set(const wchar_t* name, uint latency);
+
+/**
+ * @brief Gets the current allowed RTSP profiles for the named RTSP-Client Sink.
+ * @param[in] name name of the RTSP-Client Sink object to query
+ * @param[out] profiles mask of DSL_RTSP_PROFILE constant values. 
+ * Default = DSL_RTSP_PROFILE_AVP.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_profiles_get(const wchar_t* name,
+    uint* profiles);
+
+/**
+ * @brief Sets the allowed RTSP profiles for the named RTSP-Client Sink to use.
+ * @param[in] name name of the RTSP-Client Sink object to update
+ * @param[in] profiles mask of DSL_RTSP_PROFILE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_profiles_set(const wchar_t* name,
+    uint profiles);
+     
+/**
+ * @brief Gets the current connection validation flags for the named RTSP-Client Sink.
+ * @param[in] name name of the RTSP-Client Sink object to query
+ * @param[out] flags mask of DSL_TLS_CERTIFICATE constant values. 
+ * Default = DSL_TLS_CERTIFICATE_VALIDATE_ALL.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_get(const wchar_t* name,
+    uint* flags);
+
+/**
+ * @brief Sets the connection validation flags for the named RTSP-Client Sink to use.
+ * @param[in] name name of the RTSP-Client Sink object to update
+ * @param[in] flags mask of DSL_TLS_CERTIFICATE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_set(const wchar_t* name,
+    uint flags);
+     
 /**
  * @brief creates a new, uniquely named Interpipe Sink component.
  * @param[in] name unique coomponent name for the new Interpipe Sink

@@ -564,6 +564,17 @@ DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale)
         scale);
 }
 
+DslReturnType dsl_ode_action_bbox_style_new(const wchar_t* name, uint style)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionBBoxStyleNew(cstrName.c_str(), 
+        style);
+}
+
 DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
@@ -7345,7 +7356,7 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
         cstrName.c_str(), cstrMailer.c_str());
 }
    
-DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -7372,6 +7383,21 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
         udpPort, rtspPort);
 }    
 
+DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
+    uint codec, uint bitrate, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientNew(cstrName.c_str(), 
+        cstrUri.c_str(), codec, bitrate, interval);
+}     
+     
 DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
     boolean forward_eos, boolean forward_events)
 {    

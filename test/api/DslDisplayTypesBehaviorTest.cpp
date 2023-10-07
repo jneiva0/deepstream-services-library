@@ -1006,6 +1006,117 @@ SCENARIO( "A Format BBox ODE Action works correctly with a Random Color Palette"
     }
 }
 
+SCENARIO( "A Format & Style BBox ODE Action works correctly with a Random Color Palette", 
+    "[cool]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Format BBox ODE Action" ) 
+    {
+        std::wstring ode_trigger_name(L"occurrence-trigger");
+        std::wstring ode_format_action_name(L"format-bbox-action");
+        std::wstring ode_style_corners_action_name(L"style-bbox-corner-action");
+        std::wstring ode_style_crosshair_action_name(L"style-bbox-crosshair-action");
+        uint border_width(4);
+
+        std::wstring border_color_name(L"my-border-color");
+        std::wstring bg_color_name(L"my-bg-color");
+        
+        boolean has_bg_color(true);
+        
+        REQUIRE( dsl_display_type_rgba_color_palette_random_new(border_color_name.c_str(), 
+            4, DSL_COLOR_HUE_RANDOM, DSL_COLOR_LUMINOSITY_RANDOM, 0.78, 123) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_palette_random_new(bg_color_name.c_str(), 
+            4, DSL_COLOR_HUE_RANDOM, DSL_COLOR_LUMINOSITY_RANDOM, 0.43, 456) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_display_meta_alloc_size_set(ode_pph_name.c_str(), 
+            10)  == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
+            NULL, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_action_bbox_format_new(ode_format_action_name.c_str(), border_width, 
+            border_color_name.c_str(), has_bg_color, 
+            bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_bbox_style_new(ode_style_corners_action_name.c_str(), 
+            DSL_BBOX_STYLE_BOX_CORNERS) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_bbox_style_new(ode_style_crosshair_action_name.c_str(), 
+            DSL_BBOX_STYLE_CROSS_HAIR) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_format_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_style_corners_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_style_crosshair_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
+            ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", 
+            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"window-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
 SCENARIO( "A Format Label ODE Action works correctly with a Random Color Palette",
     "[display-types-behavior]" )
 {

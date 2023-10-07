@@ -11,7 +11,6 @@
       <File Name="../src/ffmpeg/DslAvFile.h"/>
       <File Name="../src/ffmpeg/DslAvFile.cpp"/>
     </VirtualDirectory>
-    <File Name="../src/DslApi.cpp"/>
     <File Name="../src/DslBranchBintr.cpp"/>
     <File Name="../src/DslDewarperBintr.cpp"/>
     <File Name="../src/DslGeosTypes.cpp"/>
@@ -182,6 +181,7 @@
       <File Name="../test/api/DslPipelineCbApiTest.cpp"/>
       <File Name="../test/api/DslRemuxerApiTest.cpp"/>
       <File Name="../test/api/DslRemuxerBehaviorTest.cpp"/>
+      <File Name="../src/DslApi.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDewarperUnitTest.cpp"/>

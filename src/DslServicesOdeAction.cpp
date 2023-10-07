@@ -364,6 +364,41 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionBBoxStyleNew(const char* name, uint style)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure action name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            if (style > DSL_BBOX_STYLE_CROSS_HAIR)
+            {
+                LOG_ERROR("Invalid style constant = " << style 
+                    << " for ODE Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_BBOX_STYLE_NEW(
+                name, style);
+
+            LOG_INFO("New ODE Style BBox Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Style BBox Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeActionLabelCustomizeNew(const char* name, 
         const uint* contentTypes, uint size)
     {

@@ -117,6 +117,18 @@ namespace DSL
     #define DSL_ODE_ACTION_BBOX_SCALE_NEW(name, scale) \
         std::shared_ptr<ScaleBBoxOdeAction>(new ScaleBBoxOdeAction(name, scale))
 
+    #define DSL_ODE_ACTION_BBOX_STYLE_CORNERS_PTR std::shared_ptr<StyleBBoxCornersOdeAction>
+    #define DSL_ODE_ACTION_BBOX_STYLE_CORNERS_NEW(name, style) \
+        std::shared_ptr<StyleBBoxOdeAction>(new StyleBBoxOdeAction(name, style))
+
+    #define DSL_ODE_ACTION_BBOX_STYLE_PTR std::shared_ptr<StyleBBoxOdeAction>
+    #define DSL_ODE_ACTION_BBOX_STYLE_NEW(name, style) \
+        std::shared_ptr<StyleBBoxOdeAction>(new StyleBBoxOdeAction(name, style))
+
+    #define DSL_ODE_ACTION_BBOX_STYLE_PTR std::shared_ptr<StyleBBoxOdeAction>
+    #define DSL_ODE_ACTION_BBOX_STYLE_NEW(name, style) \
+        std::shared_ptr<StyleBBoxOdeAction>(new StyleBBoxOdeAction(name, style))
+
     #define DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR std::shared_ptr<CustomizeLabelOdeAction>
     #define DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(name, contentTypes) \
         std::shared_ptr<CustomizeLabelOdeAction>(new CustomizeLabelOdeAction( \
@@ -475,6 +487,49 @@ namespace DSL
          * @brief scale factor to apply to each ObjectMeta 
          */
         uint m_scale;
+
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class StyleBBoxOdeAction
+     * @brief Style Bounding Box ODE Action class
+     */
+    class StyleBBoxOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Style BBox ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] style one of the defined DSL_BBOX_STYLE constants
+         */
+        StyleBBoxOdeAction(const char* name, uint style);
+        
+        /**
+         * @brief dtor for the ODE Style BBox Action class
+         */
+        ~StyleBBoxOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by styling the bounding box of pObjectMeta
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief bbox style to apply to each ObjectMeta 
+         */
+        uint m_style;
 
     };
 

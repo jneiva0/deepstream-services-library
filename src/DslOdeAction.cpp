@@ -271,6 +271,14 @@ namespace DSL
 
         if (m_enabled and pObjectMeta)
         {   
+            // if the provided color is a color palette
+            if (m_pColor->IsType(typeid(RgbaColorPalette)))
+            {
+                // set the palette index based on the object class-id
+                std::dynamic_pointer_cast<RgbaColorPalette>(m_pColor)->SetIndex(
+                    pObjectMeta->class_id);
+            }
+            
             // bbox coordinates are of type float (to support scaling).
             // need to round to nearest integer.
             uint left = round(pObjectMeta->rect_params.left);
@@ -377,6 +385,14 @@ namespace DSL
 
         if (m_enabled and pObjectMeta)
         {   
+            // if the provided color is a color palette
+            if (m_pColor->IsType(typeid(RgbaColorPalette)))
+            {
+                // set the palette index based on the object class-id
+                std::dynamic_pointer_cast<RgbaColorPalette>(m_pColor)->SetIndex(
+                    pObjectMeta->class_id);
+            }
+            
             // bbox coordinates are of type float (to support scaling).
             // need to round to nearest integer.
             uint left = round(pObjectMeta->rect_params.left);
@@ -423,13 +439,13 @@ namespace DSL
                 DSL_RGBA_LINE_NEW("",  xc-(actualRadius),
                     yc, xc+(actualRadius), yc, thickness, m_pColor);
             
-            DSL_RGBA_CIRCLE_PTR pCircle = 
-                DSL_RGBA_CIRCLE_NEW("", xc, yc, circleRadius, m_pColor, 
-                    false, m_pColor);
+//            DSL_RGBA_CIRCLE_PTR pCircle = 
+//                DSL_RGBA_CIRCLE_NEW("", xc, yc, circleRadius, m_pColor, 
+//                    false, m_pColor);
             
             pVerticleLine->AddMeta(displayMetaData, pFrameMeta);
             pHorizontalLine->AddMeta(displayMetaData, pFrameMeta);
-            pCircle->AddMeta(displayMetaData, pFrameMeta);
+//            pCircle->AddMeta(displayMetaData, pFrameMeta);
             
         }
     }

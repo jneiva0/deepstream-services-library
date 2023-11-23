@@ -64,18 +64,31 @@ def main(args):
     while True:    
 
         # For each camera, create a new RTSP Source for the specific RTSP URI    
-        retval = dsl_source_rtsp_new('rtsp-source',     
-            uri = hikvision_rtsp_uri,     
-            protocol = DSL_RTP_ALL,     
-            skip_frames = 0,     
-            drop_frame_interval = 0,     
-            latency=1000,
-            timeout=2)    
+        # retval = dsl_source_rtsp_new('rtsp-source',     
+        #     uri = hikvision_rtsp_uri,     
+        #     protocol = DSL_RTP_ALL,     
+        #     skip_frames = 0,     
+        #     drop_frame_interval = 0,     
+        #     latency=1000,
+        #     timeout=2)    
+        retval = dsl_source_usb_new('usb-source',0,0,0,0)
+        if (retval != DSL_RETURN_SUCCESS):    
+            return retval    
+
+        # retval = dsl_source_usb_device_location_set('usb-source','/dev/video2')
+        # if (retval != DSL_RETURN_SUCCESS):    
+        #     return retval    
+
+        retval = dsl_source_file_new('file-source','/home/hercadmin/sample_h264.mp4',repeat_enabled=True)
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display    
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)    
+        if retval != DSL_RETURN_SUCCESS:    
+            break    
+
+        retval = dsl_sink_v4l2_new('v4l2-sink','/dev/video10')
         if retval != DSL_RETURN_SUCCESS:    
             break    
 
@@ -89,7 +102,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_player_new('rtsp-player', 'rtsp-source', 'window-sink')
+        retval = dsl_player_new('rtsp-player', 'usb-source', 'window-sink')
         if retval != DSL_RETURN_SUCCESS:    
             break
             

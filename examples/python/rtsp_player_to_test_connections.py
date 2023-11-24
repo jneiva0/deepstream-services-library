@@ -79,7 +79,7 @@ def main(args):
         # if (retval != DSL_RETURN_SUCCESS):    
         #     return retval    
 
-        retval = dsl_source_file_new('file-source','/home/hercadmin/sample_h264.mp4',repeat_enabled=True)
+        retval = dsl_source_file_new('file-source','/home/hercadmin/fisheye_dist.mp4',repeat_enabled=True)
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 
@@ -89,6 +89,10 @@ def main(args):
             break    
 
         retval = dsl_sink_v4l2_new('v4l2-sink','/dev/video10')
+        if retval != DSL_RETURN_SUCCESS:    
+            break    
+
+        retval = dsl_sink_sync_enabled_set('v4l2-sink',False)
         if retval != DSL_RETURN_SUCCESS:    
             break    
 
@@ -102,7 +106,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_player_new('rtsp-player', 'usb-source', 'window-sink')
+        retval = dsl_player_new('rtsp-player', 'usb-source', 'v4l2-sink')
         if retval != DSL_RETURN_SUCCESS:    
             break
             

@@ -2524,7 +2524,7 @@ namespace DSL
         m_pSink->SetAttribute("qos", m_qos);
 
         // Set the async property to the common default (must be false)
-        m_pSink->SetAttribute("async", m_async);
+        // m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -2593,6 +2593,8 @@ namespace DSL
             !m_pMsgConverter->LinkToSink(m_pSink) or
             !m_pFakeSinkQueue->LinkToSourceTee(m_pTee, "src_%u") or
             !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
+        // if (!m_pQueue->LinkToSink(m_pMsgConverter) or
+        //     !m_pMsgConverter->LinkToSink(m_pSink))
         {
             return false;
         }
